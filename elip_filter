@@ -1,0 +1,34 @@
+Rp=0.01;%peak passband ripple%
+Fp=1800;%Passband edge freq%
+Ra=50; %stopband atten%
+Fa=4000;%Stopband edge freq%
+
+[N,Wn]=e(1800/8000,4000/8000,Rp,Ra);
+[B,A]= ellip(N,Rp,Ra,Wn);
+
+H=freqz(B,A);
+
+dellip = grpdelay(H);
+
+[N1,Wn1]=cheb1ord(1800/8000,4000/8000,Rp,Ra);
+[B1,A1]= cheby1(N1,Rp,Fp/8000);
+H2=freqz(B1,A1);
+dcheb1 = grpdelay(H2);
+
+[N2,Wn2]=cheb2ord(1800/8000,4000/8000,Rp,Ra);
+[B2,A2]= cheby2(N2,Ra,Fa/8000);
+H3=freqz(B2,A2);
+dcheb2=grpdelay(H3);
+
+[N3,Wn3]=buttord(1800/8000,4000/8000,Rp,Ra);
+[B3,A3]= butter(N3,Wn3);
+H4=freqz(B3,A3);
+dbutter = grpdelay(H4);
+
+plot(dellip,'',dcheb1,'',dcheb2,'',dbutter);
+%plot(Wn,gd);
+%plot(linspace(0,1,512),abs(H));
+%phasez(H);
+%subplot(2,1,1);
+%freqz(H);
+title('Group Delay');
