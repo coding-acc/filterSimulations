@@ -1,0 +1,57 @@
+[h,w] = cheb2ord(1800/8000,4000/8000,0.01,50);
+[b, a] = cheby2(h, 50, w); 
+g = 20*log10(abs(h));
+% Quantize the coefficients to a 5 bit word by truncation
+bq = a2dR(b,5); 
+aq = a2dR(a,5); 
+[hq, w] = freqz(bq, aq, 512); 
+gg = 20*log10(abs(hq));
+%plot(w/pi, g, 'b', w/pi, gg, 'r:'); grid on;
+axis([0 1 -80 51]);
+xlabel('\omega/\pi'); 
+ylabel('Gain dB');
+title ('Frequency Response');
+legend('Original','Quantized');
+
+[sos,G]=tf2sos(bq,aq);
+%freqz(sos);
+%plot(hq)
+%freqz(bq,aq);
+zplane(sos,G);
+%hold on;
+%zplane (b,a);
+%hold off;
+%plot(bq, aq);
+%hold off;
+
+function beq = a2dT(d,n)
+% BEQ = A2DT(D, N) generates the 
+%decimal equivalent beq of the binary 
+% representation of a decimal 
+% number D with N bits for the
+% magnitude part obtained by 
+% truncation
+m = 1;
+d1 = abs(d);
+while fix(d1) > 0
+d1 = abs(d)/(2^m);
+m = m+1;
+end
+beq = fix(d1*2^n);
+beq = sign(d).*beq.*2^(m-n-1);
+end
+
+function beq = a2dR(d,n)
+% BEQ = A2DR(D, N) generates the 
+% decimal equivalent beq of the binary 
+% representation of a decimal number D
+% with N bits for magnitude part
+% obtained by rounding
+m = 1; d1 = abs(d);
+while fix(d1) > 0
+d1 = abs(d)/(2^m);
+m = m+1;
+end
+beq = fix(d1*2^n+.5);
+beq = sign(d).*beq.*2^(m-n-1);
+end
