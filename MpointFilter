@@ -1,0 +1,60 @@
+clear
+close
+clc
+
+f=10;
+fs=300;
+T=1/fs;
+M=10;
+
+n = 0:T:1;
+
+%desired filter
+
+%Generate sequence%
+x=2*sin(2*pi*f*n);
+
+%generate noise%
+noise = -0.5+rand(1,numel(x));
+
+xn=x+noise;
+a=1;
+w=zeros(1,M);
+wi=zeros(1,M);
+e=[];
+mu=0.3; %convergence%
+
+b = ones(1,M)/M;
+%M point averaging filter%
+%yn= filter(b,a,xn);%
+
+[N, Wn] = buttord(1800/8000, 4000/8000, 0.01, 50); 
+[B,A] = butter(N,Wn); 
+H=freqz(B,A); 
+%plot(linspace(0,1,512),abs(H))
+yn= filter(B,A,xn);
+%plot(yn);
+hz = tf(B,A,1/2*Wn);
+%FIR adaptive filter implementation%
+for i=M:numel(x)
+    e(i)=yn(i)-wi*xn(i:-1:i-M+1)'; %complex conjugate rep%
+    wi=wi+2*mu*e(i)*xn(i:-1:i-M+1);%update weight equation%
+end
+
+%Estimated signal%
+est = zeros(numel(x),1);
+for i=M:numel(x)
+    j=xn(i:-1:i-M+1);
+    est(i)=((wi)*(j)');
+end
+%plot(n,yn);
+%freqz(wi);
+
+%Error signal%
+%wx = firls(N,Wn/2)
+error=est'-x;
+stem(wi);
+hold on;
+stem(A)
+%stem(hz.Numerator);
+hold off;
